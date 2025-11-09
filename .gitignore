@@ -56,3 +56,7 @@ dkms.conf
 *.dwo
 
 /build
+/tmp
+http_server
+http_client
+/build-rel
