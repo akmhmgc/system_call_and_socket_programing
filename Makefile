@@ -4,16 +4,23 @@
 #   make release    # Release 構成でビルド & テスト
 #   make clean      # 生成物削除
 #   make test-debug / make test-release も可
+#   make http_server  # HTTPサーバーをビルド
+#   make http_client  # HTTPクライアントをビルド
 
 CMAKE  ?= cmake
 CTEST  ?= ctest
+CC     ?= cc
+CFLAGS  = -Wall -Werror -O2
 
 BUILD_DEBUG    := build
 BUILD_RELEASE  := build-rel
 CONFIG_DEBUG   := Debug
 CONFIG_RELEASE := Release
-
-.PHONY: all debug release test-debug test-release clean
+HTTP_SERVER_SRCS      := app/http_server_main.c src/http_request.c src/http_request_io.c src/http_response.c src/http_calc.c src/calc.c src/socket_io.c
+HTTP_SERVER_TARGET    := http_server
+HTTP_CLIENT_SRCS      := app/http_client_main.c src/http_client.c src/socket_io.c
+HTTP_CLIENT_TARGET    := http_client
+.PHONY: all debug release test-debug test-release clean http_server http_client
 
 all: debug
 
@@ -39,4 +46,11 @@ test-release: release
 
 # --- Clean ---
 clean:
-	rm -rf $(BUILD_DEBUG) $(BUILD_RELEASE)
+	rm -rf $(BUILD_DEBUG) $(BUILD_RELEASE) $(HTTP_SERVER_TARGET) $(HTTP_CLIENT_TARGET)
+
+# --- HTTP Server ---
+http_server: $(HTTP_SERVER_SRCS)
+	$(CC) $(CFLAGS) -o $(HTTP_SERVER_TARGET) $(HTTP_SERVER_SRCS)
+
+http_client: $(HTTP_CLIENT_SRCS)
+	$(CC) $(CFLAGS) -o $(HTTP_CLIENT_TARGET) $(HTTP_CLIENT_SRCS)
