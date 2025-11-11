@@ -48,7 +48,7 @@ cleanup:
 }
 
 int main(void) {
-  const int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+  const int server_socket = socket(AF_INET6, SOCK_STREAM, 0);
   if (server_socket == -1) {
     fprintf(stderr, "[socket] errno=%d (%s)\n", errno, strerror(errno));
     return EXIT_FAILURE;
@@ -62,10 +62,19 @@ int main(void) {
     return EXIT_FAILURE;
   }
 
-  struct sockaddr_in server_address = {0};
-  server_address.sin_family = AF_INET;
-  server_address.sin_port = htons(PORT);
-  server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+  const int ipv6only = 0;
+  if (setsockopt(server_socket, IPPROTO_IPV6, IPV6_V6ONLY,
+               &ipv6only, sizeof(ipv6only)) == -1) {
+    fprintf(stderr, "[setsockopt IPV6_V6ONLY] errno=%d (%s)\n",
+            errno, strerror(errno));
+    close(server_socket);
+    return EXIT_FAILURE;
+  }
+
+  struct sockaddr_in6 server_address = {0};
+  server_address.sin6_family = AF_INET6;
+  server_address.sin6_port = htons(PORT);
+  server_address.sin6_addr = in6addr_any;
 
   if (bind(server_socket, (struct sockaddr *)&server_address,
            sizeof(server_address)) == -1) {
