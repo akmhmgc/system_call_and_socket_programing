@@ -26,6 +26,7 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "open_client_fd: %s\n", strerror(err));
     return EXIT_FAILURE;
   }
+  set_socket_timeout(fd, 30);
 
   char *request = NULL;
   size_t request_length = 0;

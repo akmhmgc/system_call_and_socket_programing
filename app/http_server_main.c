@@ -54,7 +54,6 @@ cleanup:
   close(client_fd);
 }
 
-
 int main(void) {
   struct sigaction sa = {0};
   sa.sa_handler = handler;
@@ -105,6 +104,7 @@ int main(void) {
 
   for (;;) {
     const int client_fd = accept(server_socket, NULL, NULL);
+
     if (client_fd == -1) {
       const int error = errno;
       if (error == EINTR) {
@@ -119,6 +119,10 @@ int main(void) {
       }
       fprintf(stderr, "[accept] errno=%d (%s)\n", error, strerror(error));
       continue;
+    }
+    if(set_socket_timeout(client_fd, 5) == -1) {
+      fprintf(stderr, "[setsockopt SO_RCVTIMEO/SO_SNDTIMEO] errno=%d (%s)\n",
+              errno, strerror(errno));
     }
     handle_connection(client_fd);
 
