@@ -38,6 +38,15 @@ int write_all(int fd, const void *buf, size_t len);
  */
 ssize_t read_all(int fd, char **buf);
 
+/**
+ * @brief socketにタイムアウトを設定する
+ *
+ * @param fd ファイルディスクリプタ
+ * @param seconds タイムアウトの秒数
+ * @return 0 on success, -1 on error (errno set)
+ */
+int set_socket_timeout(int fd, int seconds);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

@@ -93,3 +93,21 @@ ssize_t read_all(int fd, char **buf) {
   (*buf)[total_bytes_read] = '\0';
   return (ssize_t)total_bytes_read;
 }
+
+int set_socket_timeout(const int fd, const int seconds) {
+  struct timeval timeout;
+  timeout.tv_sec = seconds;
+  timeout.tv_usec = 0;
+
+  if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO,
+                 &timeout, sizeof(timeout)) < 0) {
+    return -1;
+                 }
+
+  if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO,
+                 &timeout, sizeof(timeout)) < 0) {
+    return -1;
+                 }
+
+  return 0;
+}

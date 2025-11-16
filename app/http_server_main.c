@@ -4,6 +4,7 @@
 #include "../src/http_response.h"
 #include "../src/socket_io.h"
 #include <errno.h>
+#include <signal.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +15,12 @@
 
 #define PORT 80
 #define BACKLOG 128
+
+static volatile sig_atomic_t stop_flag = 0;
+
+void handler(int sig) {
+  stop_flag = 1;
+}
 
 static void handle_connection(int client_fd) {
   char *request_line_string = NULL;
@@ -48,7 +55,14 @@ cleanup:
 }
 
 int main(void) {
-  const int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+  struct sigaction sa = {0};
+  sa.sa_handler = handler;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = 0;
+  sigaction(SIGINT, &sa, NULL);
+  sigaction(SIGTERM, &sa, NULL);
+
+  const int server_socket = socket(AF_INET6, SOCK_STREAM, 0);
   if (server_socket == -1) {
     fprintf(stderr, "[socket] errno=%d (%s)\n", errno, strerror(errno));
     return EXIT_FAILURE;
@@ -62,10 +76,19 @@ int main(void) {
     return EXIT_FAILURE;
   }
 
-  struct sockaddr_in server_address = {0};
-  server_address.sin_family = AF_INET;
-  server_address.sin_port = htons(PORT);
-  server_address.sin_addr.s_addr = htonl(INADDR_ANY);
+  const int ipv6only = 0;
+  if (setsockopt(server_socket, IPPROTO_IPV6, IPV6_V6ONLY,
+               &ipv6only, sizeof(ipv6only)) == -1) {
+    fprintf(stderr, "[setsockopt IPV6_V6ONLY] errno=%d (%s)\n",
+            errno, strerror(errno));
+    close(server_socket);
+    return EXIT_FAILURE;
+  }
+
+  struct sockaddr_in6 server_address = {0};
+  server_address.sin6_family = AF_INET6;
+  server_address.sin6_port = htons(PORT);
+  server_address.sin6_addr = in6addr_any;
 
   if (bind(server_socket, (struct sockaddr *)&server_address,
            sizeof(server_address)) == -1) {
@@ -81,9 +104,14 @@ int main(void) {
 
   for (;;) {
     const int client_fd = accept(server_socket, NULL, NULL);
+
     if (client_fd == -1) {
       const int error = errno;
-      if (error == EINTR || error == ECONNABORTED)
+      if (error == EINTR) {
+        if (stop_flag) break;
+        continue;
+      }
+      if (error == ECONNABORTED)
         continue;
       if (error == EMFILE || error == ENFILE || error == ENOMEM) {
         usleep(10000);
@@ -92,6 +120,15 @@ int main(void) {
       fprintf(stderr, "[accept] errno=%d (%s)\n", error, strerror(error));
       continue;
     }
+    if(set_socket_timeout(client_fd, 5) == -1) {
+      fprintf(stderr, "[setsockopt SO_RCVTIMEO/SO_SNDTIMEO] errno=%d (%s)\n",
+              errno, strerror(errno));
+    }
     handle_connection(client_fd);
+
+    if (stop_flag) {
+      break;
+    }
   }
+  close(server_socket);
 }
