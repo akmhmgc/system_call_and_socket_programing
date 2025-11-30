@@ -31,22 +31,6 @@ int send_all(int fd, const void *buf, size_t len) {
   return 0;
 }
 
-int write_all(int fd, const void *buf, size_t len) {
-  const char *position = (const char *)buf;
-  size_t bytes_remaining = len;
-  while (bytes_remaining > 0) {
-    ssize_t bytes_written = write(fd, position, bytes_remaining);
-    if (bytes_written < 0) {
-      if (errno == EINTR)
-        continue;
-      return -1;
-    }
-    position += (size_t)bytes_written;
-    bytes_remaining -= (size_t)bytes_written;
-  }
-  return 0;
-}
-
 static size_t grow_capacity(size_t capacity) {
   if (capacity > SIZE_MAX / 2) return SIZE_MAX;
   return capacity * 2;

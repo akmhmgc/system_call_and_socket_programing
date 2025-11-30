@@ -20,16 +20,6 @@ extern "C" {
 int send_all(int fd, const void *buf, size_t len);
 
 /**
- * @brief すべてのデータを書き込む
- *
- * @param fd ファイルディスクリプタ
- * @param buf 書き込むデータのポインタ
- * @param len 書き込むデータのサイズ
- * @return 0 on success, -1 on error (errno set)
- */
-int write_all(int fd, const void *buf, size_t len);
-
-/**
  * @brief EOFまですべてのデータを読み取る
  *
  * @param fd ファイルディスクリプタ

@@ -37,9 +37,9 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (write_all(fd, request, request_length) < 0) {
+    if (send_all(fd, request, request_length) < 0) {
         const int err = errno;
-        fprintf(stderr, "write_all: %s\n", strerror(err));
+        fprintf(stderr, "send_all: %s\n", strerror(err));
         free(request);
         close(fd);
         return EXIT_FAILURE;
