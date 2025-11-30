@@ -80,13 +80,8 @@ int read_request_line(const int fd, char **out_line) {
     return -1;
   }
 
-  size_t write_index = 0;
-  for (size_t read_index = 0; read_index < line_length; ++read_index) {
-    if (buffer[read_index] == '\r')
-      continue;
-    output[write_index++] = buffer[read_index];
-  }
-  output[write_index] = '\0';
+  memcpy(output, buffer, line_length);
+  output[line_length] = '\0';
 
   free(buffer);
   *out_line = output;

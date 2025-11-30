@@ -41,17 +41,17 @@ int calc_eval_request_line_dup(const RequestLine *request_line, char **out) {
   if (status == -1)
     return -1;
 
-  int need = snprintf(NULL, 0, "%d", ans);
-  if (need < 0)
+  int required_length = snprintf(NULL, 0, "%d", ans);
+  if (required_length < 0)
     return -1;
 
-  char *buf = malloc((size_t)need + 1);
+  char *buf = malloc((size_t)required_length + 1);
   if (!buf) {
     errno = ENOMEM;
     return -1;
   }
 
-  if (snprintf(buf, (size_t)need + 1, "%d", ans) < 0) {
+  if (snprintf(buf, (size_t)required_length + 1, "%d", ans) < 0) {
     free(buf);
     return -1;
   }
